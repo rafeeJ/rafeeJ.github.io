@@ -188,8 +188,21 @@ function App() {
     <div className="App">
       {loaded ?
         <>
+        <div>
+          <h1>Router</h1>
           <Table puzzle={puzzle} />
-          <button onClick={() => handleSubmit()}>Submit</button>
+          <button onClick={() => handleSubmit()} style={{margin: "1rem"}}>Submit</button>
+        </div>
+        <div>
+          <h3>Rules</h3>
+          <ul style={{textAlign: "left"}}>
+            <li>For a game to be completed, the first and last given letters on the board must be linked by words.</li>
+            <li>You cannot repeat words.</li>
+            <li>Words read left to right and top to bottom only.</li>
+            <li>For the router to be valid, all words must be in our dictionary.</li>
+            <li>Scored by fewest words on the board!</li>
+          </ul>
+        </div>
         </> :
         <h1>Loading</h1>}
     </div>
