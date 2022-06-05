@@ -15,35 +15,6 @@ function App() {
     setLoaded(true)
   }, [])
 
-  const lookDown = (cell, puzzle) => {
-    let word = []
-
-    let pointer = cell.y
-    while (puzzle[pointer][cell.x] !== 0) {
-      word.push(puzzle[pointer][cell.x])
-      pointer = pointer + 1
-      if (pointer === 6) {
-        break
-      }
-    }
-
-    return (word.join(""))
-  }
-
-  const lookRight = (cell, puzzle) => {
-    let word = [];
-
-    let pointer = cell.x
-    while (puzzle[cell.y][pointer] !== 0) {
-      word.push(puzzle[cell.y][pointer])
-      pointer = pointer + 1
-      if (pointer === 6) {
-        break
-      }
-    }
-    return (word.join(""))
-  }
-
   const sanitisePuzzle = (puzzle) => {
     var newPuzzle = []
     puzzle.forEach((row, y) => {
@@ -148,89 +119,69 @@ function App() {
 
   }
 
-  const checkAdj = (i, j, puzzle) => {
-
-    let right = isSafe(i, j + 1, puzzle) ? puzzle[i][j + 1] : null
-    let left = isSafe(i, j - 1, puzzle) ? puzzle[i][j - 1] : null
-
-    let down = isSafe(i + 1, j, puzzle) ? puzzle[i + 1][j] : null
-    let up = isSafe(i - 1, j, puzzle) ? puzzle[i - 1][j] : null
-
-    return { down: down, up: up, left: left, right: right }
-  }
-
-  const checkForOverrun = (puzzle) => {
-    const n = 6
-
-    var overrun = false;
-
-    for (let i = 0; i < n; i++) {
-      for (let j = 0; j < n; j++) {
-        if (puzzle[i][j] === 0) {
-          continue
-        } else {
-          let dirs = checkAdj(i, j, puzzle)
-
-          var numOfAdjacentLetters = _.values(dirs).filter(x => typeof x === "string").length
-
-          if (numOfAdjacentLetters < 2 && puzzle[i][j] !== puzzle[i][j].toUpperCase()) {
-            overrun = true
-          }
-
-          //console.log(dirs);
-        }
-      }
-    }
-    return overrun
-  }
-
   const checkPuzzle = (puzzle) => {
     // Sanitise puzzle by converting "" to 0
     var saniPuzzle = sanitisePuzzle(puzzle)
 
     // Check if its even valid
     var truthPath = checkForPath(saniPuzzle)
-    var overrun = checkForOverrun(saniPuzzle)
+    //var overrun = checkForOverrun(saniPuzzle)
 
-    if (truthPath === null || overrun) {
-      alert('Invalid')
+    var words = []
+
+    if (truthPath === null) {
+      return [false, "Make sure to check your path!"]
     } else {
-      var startCell = { x: 0, y: 0 }
-      var words = []
+      // Start with rows
+      saniPuzzle.forEach((row, rowIdx) => {
+        var r = row.join('')
+        var wordsThatExist = r.split("0")
+        const wordsToPush = wordsThatExist.filter(word => word.length > 1)
+        words.push(...wordsToPush)
+      });
 
-      while (startCell.x <= saniPuzzle.length - 1 && saniPuzzle.length - 1) {
+      // Then go to columns
+      for (let i = 0; i < saniPuzzle[0].length; i++) {
+        
+        let colWord = []
+        saniPuzzle.forEach((row, idx) => {
+          colWord.push(saniPuzzle[idx][i])
+        })
 
-        if (startCell.x === saniPuzzle.length - 1 && startCell.y === saniPuzzle.length - 1) {
-          break
-        }
-
-        let down = lookDown(startCell, saniPuzzle)
-        let right = lookRight(startCell, saniPuzzle)
-
-
-        if (down.length > right.length) {
-          words.push(down)
-          startCell.y = startCell.y + down.length - 1
-        } else {
-          words.push(right)
-          startCell.x = startCell.x + right.length - 1
-        }
+        var c = colWord.join('')
+        var wordsThatExist = c.split("0")
+        const wordsToPush = wordsThatExist.filter(word => word.length > 1)
+        words.push(...wordsToPush)
       }
+    
+    }
+
+    const x = []
+    words.forEach((word) => {
+      x.push(word.toLowerCase())
+    })
+
+    console.log(x);
+
+    const repeatedWords = _.filter(x, (val, i, iteratee) => _.includes(iteratee, val, i + 1))
+
+    console.log(repeatedWords);
+    
+    if (repeatedWords.length > 0) {
+      return [false, `Repeated word on the board: ${repeatedWords}`]
     }
 
     const valid = words.every((val) => {
       return WORDS.includes(val.toLowerCase())
     })
-    return valid
+    const message = valid ? "Perfect, congrats for completing it!" : "Invalid word somewhere."
+
+    return [valid, message]
   }
 
   const handleSubmit = () => {
     const valid = checkPuzzle(puzzle)
-    if (valid) {
-      alert("Looks good - well done")
-    } else {
-      alert("Something looks goofy")
-    }
+    alert(valid[1])
   }
 
   return (
